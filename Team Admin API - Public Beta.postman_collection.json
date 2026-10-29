@@ -1,0 +1,617 @@
+{
+  "info": {
+    "_postman_id": "6e091910-e787-4571-99e5-8ddfd9e46a96",
+    "name": "Team Admin API - Public Beta",
+    "description": "Discover the Autodesk teams you administer, view and invite team members, explore product pools, and manage direct product assignments.\n\n## Get started\n\n1. In the collection Variables tab, set `client_id` and `client_secret`. Keep your credentials private in Postman. Ensure your APS application has the callback URL specified by `callback_url` registered; the default is `https://oauth.pstmn.io/v1/browser-callback`.\n    \n2. Open the collection Authorization tab, select **Get New Access Token**, sign in with an account that administers the team, then select **Use Token**. Authentication uses OAuth 2.0 Authorization Code (three-legged OAuth). An application-only token is not accepted. If you already have a matching user access token, you can supply it through `access_token` instead.\n    \n3. Send **List Administered Teams** and set `team_id` to a returned `id`. Use **List team users** to select `user_id` and **List product pools** to select `product_id`. Use IDs returned by the API rather than the placeholders.\n    \n\nThe default `scope` covers all included requests. Your APS application must be permitted to request these permissions. For read-only access, set `scope` to `tmadmapi:team:read`. Write permissions do not grant read access.\n\n## Send requests\n\nSelect a request directly from the collection, review its Params and Body, then select **Send**. Set `lookup_email` for exact-email lookup; URL-encode reserved characters in this query value, for example `+` for a literal `+`. Optional filters are available in Params; enable them when needed.\n\n**Invite team user - sends invitation** uses `invite_email`. Its default JSON body contains only `email`. You can add the optional `firstName` and `lastName` fields with the invitee's actual names. **Create direct team assignment** and **Delete direct team assignment** use `user_id` and `product_id`. These requests change membership or product access when sent. For a read-only Collection Runner run, select only GET requests.\n\n## Pagination\n\nTeam, member, and product-pool lists return one page per request. To continue, enable the `cursor` query parameter in Params and supply the returned `pagination.cursor`, URL-encoded, keeping the same `limit` and filters. Stop when `pagination.hasMore` is false. Pages are followed manually; a Collection Runner run does not automatically repeat requests for subsequent pages. Assignment lists return all matching results without pagination.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "14449536"
+  },
+  "item": [
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "List Administered Teams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{alburl}}/team-admin/v1/teams",
+              "host": [
+                "{{alburl}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "The maximum number of results to return in a page. Values outside 1 through 100 are rejected rather than clamped. Keep ``limit`` unchanged while following a cursor.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "The opaque token from `pagination.cursor` on the previous page. Omit it on the first request and URL-encode it when requesting the next page. Use the same operation, caller, filters, and `limit` for the entire sequence. Do not parse or construct it. Invalid or mismatched cursors return `400`; expired cursors return `410`. Restart without a cursor after expiry.",
+                  "disabled": true
+                },
+                {
+                  "key": "teamId",
+                  "value": "{{team_id}}",
+                  "description": "The ID of a team you administer. When specified, only that team is returned.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a list of teams that the caller currently administers. Administrator status is checked on every request. Optional ``teamId`` narrows the result to one team. Unknown and unauthorized ``teamId`` values produce the same generic permission error, so the response never reveals whether a team exists.\n\nThis operation has a rate limit of 60 calls per minute.\n\nRequired scopes: tmadmapi:team:read.\nTo request the next page, enable cursor in Params and supply pagination.cursor from this response. Keep the limit and filters unchanged."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Team Users",
+      "item": [
+        {
+          "name": "List Team Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/users?limit=50",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "The maximum number of results to return in a page. Values outside 1 through 100 are rejected rather than clamped. Keep ``limit`` unchanged while following a cursor."
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "The opaque token from `pagination.cursor` on the previous page. Omit it on the first request and URL-encode it when requesting the next page. Use the same operation, caller, filters, and `limit` for the entire sequence. Do not parse or construct it. Invalid or mismatched cursors return `400`; expired cursors return `410`. Restart without a cursor after expiry.",
+                  "disabled": true
+                },
+                {
+                  "key": "email",
+                  "value": "{{lookup_email}}",
+                  "description": "The email address to filter by. When specified, only members whose email address matches exactly are returned.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a list of members of the team. An optional email returns only memberships whose email address matches the supplied address exactly.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-users:read OR tmadmapi:team:read.\nTo request the next page, enable cursor in Params and supply pagination.cursor from this response. Keep the limit and filters unchanged."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Team User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/users/{{user_id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "users",
+                "{{user_id}}"
+              ]
+            },
+            "description": "Retrieves one member of the team by the user ID returned in ``TeamUser.id``. The caller must administer the team. An unknown user ID, or one that isn't a member of the team, is reported as not found.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-users:read OR tmadmapi:team:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Find One Team User by Exact Email",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/users?email={{lookup_email}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{lookup_email}}",
+                  "description": "The email address to filter by. When specified, only members whose email address matches exactly are returned."
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "The maximum number of results to return in a page. Values outside 1 through 100 are rejected rather than clamped. Keep ``limit`` unchanged while following a cursor.",
+                  "disabled": true
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "The opaque token from `pagination.cursor` on the previous page. Omit it on the first request and URL-encode it when requesting the next page. Use the same operation, caller, filters, and `limit` for the entire sequence. Do not parse or construct it. Invalid or mismatched cursors return `400`; expired cursors return `410`. Restart without a cursor after expiry.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a list of members of the team. An optional email returns only memberships whose email address matches the supplied address exactly.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-users:read OR tmadmapi:team:read.\nTo request the next page, enable cursor in Params and supply pagination.cursor from this response. Keep the limit and filters unchanged."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Team User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{invite_email}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/users",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "users"
+              ]
+            },
+            "description": "Invites a user to the team and adds the membership. When the email address does not belong to an existing Autodesk account, ``firstName`` and ``lastName`` are used to create the invitation. The team determines whether the member is a ``USER`` or ``EXTERNAL_USER``. If the user is already a member of the team, the existing membership is returned and no new invitation is sent.\n\nInvited users who create a new Autodesk account are redirected to an Autodesk-managed page after registration; you don't supply a return URL.\n\nThis operation adds standard or external users only. Removing a team member is not supported.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-users:write OR tmadmapi:team:write.\nReview the JSON body and selected team before sending; this request changes team membership or assignments."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Pools",
+      "item": [
+        {
+          "name": "List Product Pools",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/product-pools?limit=50",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "product-pools"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "The maximum number of results to return in a page. Values outside 1 through 100 are rejected rather than clamped. Keep ``limit`` unchanged while following a cursor."
+                },
+                {
+                  "key": "cursor",
+                  "value": "",
+                  "description": "The opaque token from `pagination.cursor` on the previous page. Omit it on the first request and URL-encode it when requesting the next page. Use the same operation, caller, filters, and `limit` for the entire sequence. Do not parse or construct it. Invalid or mismatched cursors return `400`; expired cursors return `410`. Restart without a cursor after expiry.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a list of product pools available to the team, including seat counts. The list includes supported pools whose seats can be assigned to team members. Only supported product pools are returned; hidden offerings are excluded. Future-dated pools are returned; compare ``startDate`` and ``endDate`` to determine whether a pool is currently usable.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-products:read OR tmadmapi:team:read.\nTo request the next page, enable cursor in Params and supply pagination.cursor from this response. Keep the limit and filters unchanged."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Assignments",
+      "item": [
+        {
+          "name": "List Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/assignments",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "{{product_id}}",
+                  "description": "The ID of a product. When specified, only assignments for that product are returned.",
+                  "disabled": true
+                },
+                {
+                  "key": "userId",
+                  "value": "{{user_id}}",
+                  "description": "The ID of a team member. When specified, only assignments held by that member are returned. A user who is not currently a team member has no grants in this response.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a list of product assignments on the team. Direct assignments and assignments inherited through a group or the team are both returned; ``assignmentType`` identifies the effective grant. Each user and product pair appears once; grants to hidden or unsupported products are omitted from all results. Product IDs match supported pools returned by product-pool discovery. Optional filters narrow the result to one product or one user; a filter for an unsupported product returns an empty list. All matching assignments are returned in one response without pagination. Assignment changes may appear in team-wide results after a delay.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-products:read OR tmadmapi:team:read."
+          },
+          "response": []
+        },
+        {
+          "name": "List one user's assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/assignments?userId={{user_id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{user_id}}",
+                  "description": "The ID of a team member. When specified, only assignments held by that member are returned. A user who is not currently a team member has no grants in this response."
+                },
+                {
+                  "key": "productId",
+                  "value": "{{product_id}}",
+                  "description": "The ID of a product. When specified, only assignments for that product are returned.",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieves a list of product assignments on the team. Direct assignments and assignments inherited through a group or the team are both returned; ``assignmentType`` identifies the effective grant. Each user and product pair appears once; grants to hidden or unsupported products are omitted from all results. Product IDs match supported pools returned by product-pool discovery. Optional filters narrow the result to one product or one user; a filter for an unsupported product returns an empty list. All matching assignments are returned in one response without pagination. Assignment changes may appear in team-wide results after a delay.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-products:read OR tmadmapi:team:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Find one user/product assignment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/assignments?userId={{user_id}}&productId={{product_id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{user_id}}",
+                  "description": "The ID of a team member. When specified, only assignments held by that member are returned. A user who is not currently a team member has no grants in this response."
+                },
+                {
+                  "key": "productId",
+                  "value": "{{product_id}}",
+                  "description": "The ID of a product. When specified, only assignments for that product are returned."
+                }
+              ]
+            },
+            "description": "Retrieves a list of product assignments on the team. Direct assignments and assignments inherited through a group or the team are both returned; ``assignmentType`` identifies the effective grant. Each user and product pair appears once; grants to hidden or unsupported products are omitted from all results. Product IDs match supported pools returned by product-pool discovery. Optional filters narrow the result to one product or one user; a filter for an unsupported product returns an empty list. All matching assignments are returned in one response without pagination. Assignment changes may appear in team-wide results after a delay.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-products:read OR tmadmapi:team:read."
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"productId\": \"{{product_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/assignments",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "assignments"
+              ]
+            },
+            "description": "Assigns a seat from a team product pool to a team member. Only ``DIRECT`` assignments can be created. Requests with an ``assignmentType`` of ``GROUP`` or ``TEAM`` are rejected. Use a supported product ID from product-pool discovery. Known unsupported product pools are rejected with ``422``. This operation does not currently enforce a reassignment quota.\n\nThe operation converges: creating an assignment that already exists leaves the team in the same state. Whether the assignment is new or already existed, the response contains the current assignment.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-products:write.\nReview the JSON body and selected team before sending; this request changes team membership or assignments."
+          },
+          "response": []
+        },
+        {
+          "name": "Unassign Product",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{url}}/team-admin/v1/teams/{{team_id}}/assignments?userId={{user_id}}&productId={{product_id}}",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "team-admin",
+                "v1",
+                "teams",
+                "{{team_id}}",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{user_id}}",
+                  "description": "The ID of the team member to unassign."
+                },
+                {
+                  "key": "productId",
+                  "value": "{{product_id}}",
+                  "description": "The ID of the product whose seat is released."
+                }
+              ]
+            },
+            "description": "Removes a direct product assignment from a team member. The assignment is identified by the required ``userId`` and ``productId`` query parameters. Do not send a request body. Use a supported product ID from product-pool discovery. Known unsupported product pools are rejected with ``422`` without changing their assignments.\n\nAssignments inherited through a group or the team cannot be removed with this operation. When no direct or inherited grant exists, the response is ``204``. When only inherited grants remain, the response is ``422``. Deleting a direct grant preserves inherited grants, so a retry can return ``422`` after a successful deletion if inherited grants remain.\n\nThis operation shares the team's allowance of 60 calls per UTC minute with all other team-specific operations.\n\nRequired scopes: tmadmapi:team-products:write."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {
+        "key": "clientId",
+        "value": "{{client_id}}",
+        "type": "string"
+      },
+      {
+        "key": "accessTokenUrl",
+        "value": "{{url}}/authentication/v2/token",
+        "type": "string"
+      },
+      {
+        "key": "authUrl",
+        "value": "{{json_web_token_0pdz}}",
+        "type": "string"
+      },
+      {
+        "key": "tokenName",
+        "value": "Team Admin {{url}}",
+        "type": "string"
+      },
+      {
+        "key": "tokenType",
+        "value": "Bearer",
+        "type": "string"
+      },
+      {
+        "key": "addTokenTo",
+        "value": "header",
+        "type": "string"
+      },
+      {
+        "key": "refreshTokenUrl",
+        "value": "{{url}}/authentication/v2/token",
+        "type": "string"
+      },
+      {
+        "key": "clientSecret",
+        "value": "{{client_secret}}",
+        "type": "string"
+      },
+      {
+        "key": "scope",
+        "value": "{{scope}}",
+        "type": "string"
+      },
+      {
+        "key": "state",
+        "value": "{{$guid}}",
+        "type": "string"
+      },
+      {
+        "key": "client_authentication",
+        "value": "header",
+        "type": "string"
+      },
+      {
+        "key": "redirect_uri",
+        "value": "{{callback_url}}",
+        "type": "string"
+      },
+      {
+        "key": "grant_type",
+        "value": "authorization_code",
+        "type": "string"
+      },
+      {
+        "key": "accessToken",
+        "value": "{{access_token}}",
+        "type": "string"
+      },
+      {
+        "key": "useBrowser",
+        "value": true,
+        "type": "boolean"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "url",
+      "value": "https://developer-stg.api.autodesk.com",
+      "description": "Server origin without /team-admin/v1. The selected environment controls API and OAuth URLs."
+    },
+    {
+      "key": "client_id",
+      "value": "REPLACE_WITH_CLIENT_ID",
+      "description": "APS application client ID for the selected environment."
+    },
+    {
+      "key": "client_secret",
+      "value": "REPLACE_WITH_CLIENT_SECRET",
+      "description": "Set privately in Postman; never share an exported real secret."
+    },
+    {
+      "key": "callback_url",
+      "value": "https://oauth.pstmn.io/v1/browser-callback",
+      "description": "Register this exact callback URL with your APS app."
+    },
+    {
+      "key": "scope",
+      "value": "tmadmapi:team:read tmadmapi:team-users:write tmadmapi:team-products:write",
+      "description": "Scopes covering all operations. Write scopes do not grant read access."
+    },
+    {
+      "key": "access_token",
+      "value": "REPLACE_WITH_REAL_3LO_APS_TOKEN",
+      "description": "Optional existing-token alternative to the OAuth helper. Match the selected environment."
+    },
+    {
+      "key": "team_id",
+      "value": "REPLACE_WITH_TEAM_ID",
+      "description": "Choose an id returned by List administered teams."
+    },
+    {
+      "key": "user_id",
+      "value": "REPLACE_WITH_USER_ID",
+      "description": "Choose a member id returned by List team users."
+    },
+    {
+      "key": "product_id",
+      "value": "REPLACE_WITH_PUBLIC_PRODUCT_ID",
+      "description": "Choose a productId returned by List product pools."
+    },
+    {
+      "key": "lookup_email",
+      "value": "REPLACE_WITH_MEMBER_EMAIL",
+      "description": "Exact email query value for Find a team user by exact email. URL-encode reserved characters; use %2B for a literal +."
+    },
+    {
+      "key": "invite_email",
+      "value": "REPLACE_WITH_CONTROLLED_TEST_EMAIL",
+      "description": "Recipient of Invite team user - sends invitation."
+    },
+    {
+      "key": "json_web_token_0pdz",
+      "secret": true
+    }
+  ]
+}
