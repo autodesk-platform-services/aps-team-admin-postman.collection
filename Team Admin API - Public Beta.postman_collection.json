@@ -556,7 +556,7 @@
   "variable": [
     {
       "key": "url",
-      "value": "https://developer-stg.api.autodesk.com",
+      "value": "https://developer.api.autodesk.com",
       "description": "Server origin without /team-admin/v1. The selected environment controls API and OAuth URLs."
     },
     {
