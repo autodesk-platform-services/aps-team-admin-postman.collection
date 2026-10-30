@@ -22,9 +22,9 @@
               }
             ],
             "url": {
-              "raw": "{{alburl}}/team-admin/v1/teams",
+              "raw": "{{url}}/team-admin/v1/teams",
               "host": [
-                "{{alburl}}"
+                "{{url}}"
               ],
               "path": [
                 "team-admin",
