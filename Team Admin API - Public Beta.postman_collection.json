@@ -488,7 +488,7 @@
       },
       {
         "key": "authUrl",
-        "value": "{{json_web_token_0pdz}}",
+        "value": "{{url}}/authentication/v2/authorize",
         "type": "string"
       },
       {
