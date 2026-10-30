@@ -36,7 +36,6 @@ Requests in the Team users and Assignments folders that use `lookup_email`, `inv
 ## Resources
 
 - [Get started with the Team Admin API](https://aps.autodesk.com/en/docs/team_admin/v1/tutorials/get-started/)
-- [APS tutorial Postman collections](https://github.com/autodesk-platform-services/aps-tutorial-postman)
 
 ## License
 
